@@ -1,69 +1,56 @@
-import {v4 as uuidv4} from 'uuid';
+import {v4 as uuidV4} from 'uuid'
 
-const list = document.querySelector<HTMLUListElement>('#list');
-const input = document.querySelector('#input') as HTMLInputElement;
-const button = document.querySelector('#button') as HTMLButtonElement;
+type Task = {
+  id: string,
+  title: string,
+  completed: boolean,
+  createdAt: Date
+}
 
-button.addEventListener('click', () => {
-  const id = uuidv4();
-  const text = input.value;
-  const li = document.createElement('li');
-  li.setAttribute('id', id);
+const list = document.querySelector<HTMLUListElement>('#list')
+const input = document.querySelector<HTMLInputElement>('#new-task-title')
+const form = document.getElementById('new-task-form') as HTMLFormElement
+const tasks: Task[] = loadTasks()
+tasks.forEach(addListItem)
 
+form.addEventListener("submit", e => {
+  e.preventDefault()
+  if(input?.value == "" || input?.value == null ) return
+  
+  const newTask: Task = {
+    id: uuidV4(),
+    title: input.value,
+    completed: false,
+    createdAt: new Date()
+  }
+  tasks.push(newTask)
+  saveTasks()
 
+  addListItem(newTask)
+  input.value = ''
+})
 
+function addListItem(task: Task) {
+  const item = document.createElement("li")
+  const label = document.createElement("label")
+  const checkbox = document.createElement("input")
+  checkbox.addEventListener("change", () => {
+    task.completed = checkbox.checked
+    saveTasks()
+  })
+  checkbox.type = "checkbox"
+  checkbox.checked = checkbox.checked
+  label.append(checkbox, task.title)
+  item.append(label)
+  list?.append(item)
+}
 
+function saveTasks() {
+  localStorage.setItem("TASKS", JSON.stringify(tasks))
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import './style.css'
-// import typescriptLogo from './typescript.svg'
-// import { setupCounter } from './counter'
-
-// document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-//   <div>
-//     <a href="https://vitejs.dev" target="_blank">
-//       <img src="/vite.svg" class="logo" alt="Vite logo" />
-//     </a>
-//     <a href="https://www.typescriptlang.org/" target="_blank">
-//       <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-//     </a>
-//     <h1>Vite + TypeScript</h1>
-//     <div class="card">
-//       <button id="counter" type="button"></button>
-//     </div>
-//     <p class="read-the-docs">
-//       Click on the Vite and TypeScript logos to learn more
-//     </p>
-//   </div>
-// `
-
-// setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+function loadTasks(): Task[] {
+  const taskJSON = localStorage.getItem("TASKS")
+  if (taskJSON == null) return []
+  return JSON.parse(taskJSON)
+}
